@@ -19,6 +19,8 @@ def test_one_user(x):
     #user u's items in the training set
     item_num = x[2]
 
+    data_generator = x[3]
+
     training_items = data_generator.train_items[u]
     #user u's items in the test set
     user_pos_test = data_generator.test_set[u]
@@ -56,10 +58,11 @@ def test_one_user(x):
 
     return np.array([recall_20,recall_40,recall_60,recall_80,recall_100, ap_20,ap_40,ap_60,ap_80,ap_100])
 
-def testAll(sess, model, users_to_test, feed_dict):
+def testAll(sess, model, users_to_test, data_generator, feed_dict):
     result_1 = np.array([0.] * 10)
     result_2 = np.array([0.] * 10)
-
+    data_generator_1 = data_generator[0]
+    data_generator_2 = data_generator[1]
     pool = multiprocessing.Pool(cores)
     batch_size = params.BATCH_SIZE
     #all users needed to test
@@ -69,6 +72,8 @@ def testAll(sess, model, users_to_test, feed_dict):
     test_user_num_2 = len(test_users_2)
     item_num_list_1 = [model.n_items_1] * params.BATCH_SIZE
     item_num_list_2 = [model.n_items_2] * params.BATCH_SIZE
+    data_generator_batch_1 = [data_generator_1] * params.BATCH_SIZE
+    data_generator_batch_2 = [data_generator_2] * params.BATCH_SIZE
     index = 0
     while True:
         if index >= min(test_user_num_1, test_user_num_2):
@@ -91,8 +96,8 @@ def testAll(sess, model, users_to_test, feed_dict):
         
         user_batch_rating_1, user_batch_rating_2 = sess.run([model.all_ratings_1, model.all_ratings_2], feed_dict=feed_dict)
         # user_batch_rating = sess.run(model.all_ratings, {model.users: user_batch})
-        user_batch_rating_uid_1 = zip(user_batch_rating_1, user_batch_1, item_num_list_1)
-        user_batch_rating_uid_2 = zip(user_batch_rating_2, user_batch_2, item_num_list_2)
+        user_batch_rating_uid_1 = zip(user_batch_rating_1, user_batch_1, item_num_list_1, data_generator_batch_1)
+        user_batch_rating_uid_2 = zip(user_batch_rating_2, user_batch_2, item_num_list_2, data_generator_batch_2)
         
         batch_result_1 = pool.map(test_one_user, user_batch_rating_uid_1)
         batch_result_2 = pool.map(test_one_user, user_batch_rating_uid_2)

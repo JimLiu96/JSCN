@@ -24,6 +24,7 @@ ckpt_log = 'ckptfile.log'
 
 data_generator_1 = load_data.Data(train_file=params.DIR + params.trainUserFileName_1, test_file=params.DIR+params.testUserFileName_1,batch_size=params.BATCH_SIZE)
 data_generator_2 = load_data.Data(train_file=params.DIR + params.trainUserFileName_2, test_file=params.DIR+params.testUserFileName_2,batch_size=params.BATCH_SIZE)
+data_generator = [data_generator_1, data_generator_2]
 print(params.trainUserFileName_1, params.testUserFileName_1)
 print(params.trainUserFileName_2, params.testUserFileName_2)
 USER_NUM_1, ITEM_NUM_1 = data_generator_1.get_num_users_items()
@@ -129,9 +130,10 @@ def modelTrain(testState = False):
                     print(params.EMB_DIM,params.BATCH_SIZE,params.DECAY,params.K,params.N_EPOCH,params.LR)
                     print('Epoch %d training loss %f' % (epoch, loss))
                     if testState == True:
-                        users_to_test_1 = list(test.data_generator_1.test_set.keys())
-                        users_to_test_2 = list(test.data_generator_2.test_set.keys())
-                        ret = test.testAll(sess, model, users_to_test, graphLambda_feed, graphU_feed)
+                        users_to_test_1 = list(data_generator_1.test_set.keys())
+                        users_to_test_2 = list(data_generator_2.test_set.keys())
+                        users_to_test = [users_to_test_1, users_to_test_2]
+                        ret = test.testAll(sess, model, users_to_test, data_generator, feed_dict)
                         ret_1 = ret[0]
                         ret_2 = ret[1]
                         print('%s: recall_20 %f recall_40 %f recall_60 %f recall_80 %f recall_100 %f'
@@ -140,9 +142,9 @@ def modelTrain(testState = False):
                             % (params.metaName_1, ret_1[5], ret_1[6], ret_1[7], ret_1[8], ret_1[9]))
 
                         print('%s: recall_20 %f recall_40 %f recall_60 %f recall_80 %f recall_100 %f'
-                                % (params.metaName_1, ret_2[0],ret_2[1],ret_2[2],ret_2[3],ret_2[4]))
+                                % (params.metaName_2, ret_2[0],ret_2[1],ret_2[2],ret_2[3],ret_2[4]))
                         print('%s: map_20 %f map_40 %f map_60 %f map_80 %f map_100 %f'
-                            % (params.metaName_1, ret_2[5], ret_2[6], ret_2[7], ret_2[8], ret_2[9]))
+                            % (params.metaName_2, ret_2[5], ret_2[6], ret_2[7], ret_2[8], ret_2[9]))
                         logStrList[0] = 'EMB_DIM,BATCH_SIZE,DECAY,K,N_EPOCH,LR:'+','.join([str(val) for val in paramsList])
                         logStrList[1] = 'Epoch ' + str(epoch) + 'training loss ' + str(loss)
                         logStrList[2] = 'recall_20_40_60_80:' + ','.join([str(val) for val in ret_1[:5]]) + ','.join([str(val) for val in ret_2[:5]])
