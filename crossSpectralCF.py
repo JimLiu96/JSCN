@@ -15,12 +15,14 @@ class SpectralCF(object):
         self.n_items_1 = n_items_1
         self.n_users_2 = n_users_2
         self.n_items_2 = n_items_2
-        self.common_user_pair = commonUser
+        self.common_user_1 = [i for i,j in commonUser]
+        self.common_user_2 = [j for i,j in commonUser]
         self.emb_dim = emb_dim
         self.batch_size = batch_size
         self.K = K
         self.decay = decay
         self.bpr_loss = [0]*M
+
         var_list = []
 
         self.users_1 = tf.placeholder(tf.int32, shape=(self.batch_size,))
@@ -66,6 +68,8 @@ class SpectralCF(object):
         batch_u_embeddings_1 = tf.nn.embedding_lookup(self.u_embeddings_1, self.users_1)
         batch_pos_i_embeddings_1 = tf.nn.embedding_lookup(self.i_embeddings_1, self.pos_items_1)
         batch_neg_i_embeddings_1 = tf.nn.embedding_lookup(self.i_embeddings_1, self.neg_items_1)
+
+        commonUserEmbedding_1 = tf.nn.embedding_lookup(self.u_embeddings_1, self.common_user_1)
 
         self.all_ratings_1 = tf.matmul(self.u_embeddings_1, self.i_embeddings_1, transpose_a=False, transpose_b=True)
 
@@ -115,20 +119,26 @@ class SpectralCF(object):
             # self.u_embeddings_2 = tf.nn.embedding_lookup(self.u_embeddings_2, self.users_2)
             # self.pos_i_embeddings_2 = tf.nn.embedding_lookup(self.i_embeddings_2, self.pos_items_2)
             # self.neg_i_embeddings_2 = tf.nn.embedding_lookup(self.i_embeddings_2, self.neg_items_2)
-            
-            self.u_embeddings_2 = tf.nn.embedding_lookup(self.u_embeddings_2, self.users_2)
-            self.pos_i_embeddings_2 = tf.nn.embedding_lookup(self.i_embeddings_2, self.pos_items_2)
-            self.neg_i_embeddings_2 = tf.nn.embedding_lookup(self.i_embeddings_2, self.neg_items_2)
 
-            self.all_ratings_2 = tf.matmul(self.u_embeddings_2, self.i_embeddings_2, transpose_a=False, transpose_b=True)
+            batch_u_embeddings_2 = tf.nn.embedding_lookup(self.u_embeddings_2, self.users_2)
+            batch_pos_i_embeddings_2 = tf.nn.embedding_lookup(self.i_embeddings_2, self.pos_items_2)
+            batch_neg_i_embeddings_2 = tf.nn.embedding_lookup(self.i_embeddings_2, self.neg_items_2)
 
-            self.bpr_loss[1] = self.create_bpr_loss(self.u_embeddings_2, self.pos_i_embeddings_2, self.neg_i_embeddings_2)
+            commonUserEmbedding_2 = tf.nn.embedding_lookup(self.u_embeddings_2, self.common_user_2)
+
+
+            # self.all_ratings_2 = tf.matmul(self.u_embeddings_2, self.i_embeddings_2, transpose_a=False, transpose_b=True)
+            self.all_ratings_2 = tf.matmul(batch_u_embeddings_2, self.i_embeddings_2, transpose_a=False, transpose_b=True)
+
+            # self.bpr_loss[1] = self.create_bpr_loss(self.u_embeddings_2, self.pos_i_embeddings_2, self.neg_i_embeddings_2)
+            self.bpr_loss[1] = self.create_bpr_loss(batch_u_embeddings_2, batch_pos_i_embeddings_2, batch_neg_i_embeddings_2)
     #         print("---------------loss is set----------------")
 
 
         # Loss
         self.bpr_loss_all = sum(self.bpr_loss)
-        self.loss = self.bpr_loss_all + 0
+        self.common_user_loss = createCommonUserloss(commonUserEmbedding_1, commonUserEmbedding_2)
+        self.loss = self.bpr_loss_all + self.common_user_loss
 
         self.opt = tf.train.RMSPropOptimizer(learning_rate=lr)
 
@@ -150,8 +160,10 @@ class SpectralCF(object):
         # loss = tf.negative(tf.reduce_sum(maxi)) + self.decay * regularizer
         return loss
 
-    def create_joint_loss(self):
-        return
+    def createCommonUserloss(commonUserEmbedding_1, commonUserEmbedding_2):
+        commonUserLoss = 0
+        commonUserLoss = commonUserLoss + tf.nn.l2_loss(commonUserEmbedding_1 - commonUserEmbedding_2)
+        return commonUserLoss
 
 
     def embeddingSaving(self, loss, u_embeddings, i_embeddings,userOpenFile, itemOpenFile):
