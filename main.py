@@ -43,6 +43,8 @@ def modelTrain(testState = False):
     # A_2 = adjacient_matrix(graph_2,self_connection=True)
     # D_2 = degree_matrix(A_2)
     # L_2 = laplacian_matrix(D_2,A_2,normalized=True)
+    with open(params.commonUserFileName, 'rb') as commonF:
+        commonUserPair = pickle.load(commonF)
 
     eigPara = []
     
@@ -77,7 +79,8 @@ def modelTrain(testState = False):
 
     paramsList = [params.EMB_DIM, params.BATCH_SIZE, params.DECAY, params.K, params.N_EPOCH, params.LR]
     # self, K, M = 1, n_users_1, n_users_2, n_items_1, n_items_2, emb_dim, lr, batch_size, decay, DIR
-    model = SpectralCF(K=params.K, M=2, n_users_1=USER_NUM_1, n_users_2=USER_NUM_2, n_items_1=ITEM_NUM_1, n_items_2=ITEM_NUM_2,
+    model = SpectralCF(K=params.K, M=2, n_users_1=USER_NUM_1, n_users_2=USER_NUM_2,  
+                        n_items_1=ITEM_NUM_1, n_items_2=ITEM_NUM_2, commonUser = commonUserPair,
                       emb_dim=params.EMB_DIM, lr=params.LR, decay=params.DECAY, batch_size=params.BATCH_SIZE,DIR=params.DIR)
     ## Configure of Tensorflow
     ckpt_name_meta = str(model.model_name + '_' + params.metaName_1 + 
@@ -126,7 +129,8 @@ def modelTrain(testState = False):
                     print(params.EMB_DIM,params.BATCH_SIZE,params.DECAY,params.K,params.N_EPOCH,params.LR)
                     print('Epoch %d training loss %f' % (epoch, loss))
                     if testState == True:
-                        users_to_test = list(test.data_generator.test_set.keys())
+                        users_to_test_1 = list(test.data_generator_1.test_set.keys())
+                        users_to_test_2 = list(test.data_generator_2.test_set.keys())
                         ret = test.testAll(sess, model, users_to_test, graphLambda_feed, graphU_feed)
                         print('recall_20 %f recall_40 %f recall_60 %f recall_80 %f recall_100 %f'
                                 % (ret[0],ret[1],ret[2],ret[3],ret[4]))

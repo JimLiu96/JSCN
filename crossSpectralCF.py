@@ -137,7 +137,7 @@ class SpectralCF(object):
 
         # Loss
         self.bpr_loss_all = sum(self.bpr_loss)
-        self.common_user_loss = createCommonUserloss(commonUserEmbedding_1, commonUserEmbedding_2)
+        self.common_user_loss = self.createCommonUserloss(commonUserEmbedding_1, commonUserEmbedding_2)
         self.loss = self.bpr_loss_all + self.common_user_loss
 
         self.opt = tf.train.RMSPropOptimizer(learning_rate=lr)
@@ -160,7 +160,7 @@ class SpectralCF(object):
         # loss = tf.negative(tf.reduce_sum(maxi)) + self.decay * regularizer
         return loss
 
-    def createCommonUserloss(commonUserEmbedding_1, commonUserEmbedding_2):
+    def createCommonUserloss(self, commonUserEmbedding_1, commonUserEmbedding_2):
         commonUserLoss = 0
         commonUserLoss = commonUserLoss + tf.nn.l2_loss(commonUserEmbedding_1 - commonUserEmbedding_2)
         return commonUserLoss
