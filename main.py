@@ -132,16 +132,24 @@ def modelTrain(testState = False):
                         users_to_test_1 = list(test.data_generator_1.test_set.keys())
                         users_to_test_2 = list(test.data_generator_2.test_set.keys())
                         ret = test.testAll(sess, model, users_to_test, graphLambda_feed, graphU_feed)
-                        print('recall_20 %f recall_40 %f recall_60 %f recall_80 %f recall_100 %f'
-                                % (ret[0],ret[1],ret[2],ret[3],ret[4]))
-                        print('map_20 %f map_40 %f map_60 %f map_80 %f map_100 %f'
-                            % (ret[5], ret[6], ret[7], ret[8], ret[9]))
+                        ret_1 = ret[0]
+                        ret_2 = ret[1]
+                        print('%s: recall_20 %f recall_40 %f recall_60 %f recall_80 %f recall_100 %f'
+                                % (params.metaName_1, ret_1[0],ret_1[1],ret_1[2],ret_1[3],ret_1[4]))
+                        print('%s: map_20 %f map_40 %f map_60 %f map_80 %f map_100 %f'
+                            % (params.metaName_1, ret_1[5], ret_1[6], ret_1[7], ret_1[8], ret_1[9]))
+
+                        print('%s: recall_20 %f recall_40 %f recall_60 %f recall_80 %f recall_100 %f'
+                                % (params.metaName_1, ret_2[0],ret_2[1],ret_2[2],ret_2[3],ret_2[4]))
+                        print('%s: map_20 %f map_40 %f map_60 %f map_80 %f map_100 %f'
+                            % (params.metaName_1, ret_2[5], ret_2[6], ret_2[7], ret_2[8], ret_2[9]))
                         logStrList[0] = 'EMB_DIM,BATCH_SIZE,DECAY,K,N_EPOCH,LR:'+','.join([str(val) for val in paramsList])
                         logStrList[1] = 'Epoch ' + str(epoch) + 'training loss ' + str(loss)
-                        logStrList[2] = 'recall_20_40_60_80:' + ','.join([str(val) for val in ret[:5]])
-                        logStrList[3] = 'map_20_40_60_80_100:' + ','.join([str(val) for val in ret[5:]])
+                        logStrList[2] = 'recall_20_40_60_80:' + ','.join([str(val) for val in ret_1[:5]]) + ','.join([str(val) for val in ret_2[:5]])
+                        logStrList[3] = 'map_20_40_60_80_100:' + ','.join([str(val) for val in ret_1[5:]]) + ','.join([str(val) for val in ret_2[5:]])
                         logStr = '\n'.join(logStrList)
                         with open(logFileName,'a') as logFileA:
+                            logFileA.write(model.model_name + '-' + params.metaName_1 + '-' + params.metaName_2 + '\n')
                             logFileA.write(logStr)
                     else:
                         logStrList[0] = 'EMB_DIM,BATCH_SIZE,DECAY,K,N_EPOCH,LR:'+','.join([str(val) for val in paramsList])
