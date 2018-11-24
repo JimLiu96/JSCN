@@ -13,7 +13,7 @@ def parse(path):
   for l in g:
     yield json.dumps(eval(l))
 
-def processing(ratingFileName, num_items = 5, train_items = 5, num_users = 5):
+def processing(ratingFileName, num_items = 5, train_items = 5, num_users = 5, rating_score=5):
     # num_items is the threshold for the minimum items for one user
     # num_users is the threshold for the minimum users buying one item
     u2items = {}
@@ -34,7 +34,7 @@ def processing(ratingFileName, num_items = 5, train_items = 5, num_users = 5):
         users.add(u)
         items.add(i)
         ratings += 1
-        if r >= 5:
+        if r >= rating_score:
             if u in u2items:
                 u2items[u].append(i)
             else:
@@ -42,16 +42,20 @@ def processing(ratingFileName, num_items = 5, train_items = 5, num_users = 5):
 
     print('total Statistic:',len(users),len(items),ratings)
     u2items = {k:v for k,v in u2items.items() if len(v) >= num_items}
+    i2users = filterItems(u2items, num_users)
     iid = 0
     for k,items in u2items.items():
         temp = []
         for i in items:
-            if i not in item2id:
-                item2id[i] = iid
-                iid += 1
-            temp.append(item2id[i])
+            if i in i2users:
+                if i not in item2id:
+                    item2id[i] = iid
+                    iid += 1
+                temp.append(item2id[i])
         u2items[k] = temp
+    u2items = {k:v for k,v in u2items.items() if len(v) >= num_items}
     id2item = {idNum:itemNum for itemNum,idNum in item2id.items()}
+    # return u2items
     # print(len(u2items))
     num_ratings = 0
     for u in u2items:
@@ -84,6 +88,18 @@ def processing(ratingFileName, num_items = 5, train_items = 5, num_users = 5):
 
     print('Remaning:',uid,iid)
     print(num_ratings/(uid*iid))
+
+def filterItems(user2items, num_users):
+    i2userTemp = {}
+    for user in user2items:
+        itemList = user2items[user]
+        for item in itemList:
+            if item not in i2userTemp:
+                i2userTemp[item] = [user]
+            else:
+                i2userTemp[item].append(user)
+    i2users = {i:u for i,u in i2users.items() if len(u)>=num_users}
+    return i2users
 
 def loadID2UandI(metaName):
     id2userFileName = metaName + '_id2user.pickle'
