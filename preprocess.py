@@ -55,8 +55,6 @@ def processing(ratingFileName, num_items = 5, train_items = 5, num_users = 5, ra
         u2items[k] = temp
     u2items = {k:v for k,v in u2items.items() if len(v) >= num_items}
     id2item = {idNum:itemNum for itemNum,idNum in item2id.items()}
-    # return u2items
-    # print(len(u2items))
     num_ratings = 0
     for u in u2items:
         num_ratings += len(u2items[u])
@@ -73,7 +71,7 @@ def processing(ratingFileName, num_items = 5, train_items = 5, num_users = 5, ra
                 if k not in id2user:
                     id2user[uid] = k
                 if len(v) <= train_items:
-                    print("less than %d items put into train only" %(train_items))
+                    # print("less than %d items put into train only" %( train_items))
                     f_train.write(str(uid) + ' ' + ' '.join([str(i) for i in v]) + '\n')
                 else:
                     train, test = split(v)
@@ -98,7 +96,7 @@ def filterItems(user2items, num_users):
                 i2userTemp[item] = [user]
             else:
                 i2userTemp[item].append(user)
-    i2users = {i:u for i,u in i2users.items() if len(u)>=num_users}
+    i2users = {i:u for i,u in i2userTemp.items() if len(u)>=num_users}
     return i2users
 
 def loadID2UandI(metaName):

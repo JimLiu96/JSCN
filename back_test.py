@@ -1,14 +1,15 @@
 import utils as ut
-from params import *
-from load_data import *
+# from params import *
+import params
+import load_data
 import multiprocessing
+import numpy as np
 cores = multiprocessing.cpu_count()
 
-train_user_file_name = 'train_users.dat'
-# train_user_file_name = 'testTrain.dat'
-data_generator = Data(train_file=DIR + train_user_file_name, test_file=DIR+'test_users.dat',batch_size=BATCH_SIZE)
-USER_NUM, ITEM_NUM = data_generator.get_num_users_items()
+print(params.BATCH_SIZE)
 
+data_generator = load_data.Data(train_file=params.DIR + params.trainUserFileName, test_file=params.DIR+params.testUserFileName,batch_size=params.BATCH_SIZE)
+USER_NUM, ITEM_NUM = data_generator.get_num_users_items()
 
 def test_one_user(x):
     # user u's ratings for user u
@@ -53,11 +54,10 @@ def test_one_user(x):
 
     return np.array([recall_20,recall_40,recall_60,recall_80,recall_100, ap_20,ap_40,ap_60,ap_80,ap_100])
 
-
-def test(sess, model, users_to_test):
+def testAll(sess, model, users_to_test):
     result = np.array([0.] * 10)
     pool = multiprocessing.Pool(cores)
-    batch_size = BATCH_SIZE
+    batch_size = params.BATCH_SIZE
     #all users needed to test
     test_users = users_to_test
     test_user_num = len(test_users)
@@ -72,7 +72,7 @@ def test(sess, model, users_to_test):
             user_batch += [user_batch[-1]] * (batch_size - len(user_batch))
             user_batch_len = len(user_batch)
             FLAG = True
-        user_batch_rating = sess.run(model.all_ratings, {model.users: user_batch})
+        user_batch_rating = sess.run(model.all_ratings, {model.users: user_batch,})
         user_batch_rating_uid = zip(user_batch_rating, user_batch)
         batch_result = pool.map(test_one_user, user_batch_rating_uid)
 

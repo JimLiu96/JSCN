@@ -161,8 +161,9 @@ class SpectralCF(object):
         return loss
 
     def createCommonUserloss(self, commonUserEmbedding_1, commonUserEmbedding_2):
-        commonUserLoss = 0
+        commonUserLoss = 0.0
         commonUserLoss = commonUserLoss + tf.nn.l2_loss(commonUserEmbedding_1 - commonUserEmbedding_2)
+        # commonUserLoss = commonUserLoss + tf.losses.absolute_difference(commonUserEmbedding_1, commonUserEmbedding_2)
         return commonUserLoss
 
 

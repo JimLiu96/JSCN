@@ -85,7 +85,7 @@ def modelTrain(testState = False):
                       emb_dim=params.EMB_DIM, lr=params.LR, decay=params.DECAY, batch_size=params.BATCH_SIZE,DIR=params.DIR)
     ## Configure of Tensorflow
     ckpt_name_meta = str(model.model_name + '_' + params.metaName_1 + 
-                            '_' + str(params.metaName_2) + '_' + '_'.join([str(val) for val in paramsList]) + '.ckpt-')
+                            '_' + str(params.metaName_2) + '_' + '_'.join([str(val) for val in paramsList]) + '.ckpt')
 #     ckptfileName = params.CKPTFILENAME
     config = tf.ConfigProto()
     config.gpu_options.allow_growth = True
@@ -99,8 +99,9 @@ def modelTrain(testState = False):
         start = 0
         model_saver = tf.train.Saver(max_to_keep=10)
         if ckpt and ckpt.model_checkpoint_path:
-            if ckpt.model_checkpoint_path.split("-")[0] == ckpt_name_meta:
-                print(ckpt.model_checkpoint_path)
+            # print(ckpt.model_checkpoint_path.split("-"))
+            if ckpt.model_checkpoint_path.split("-")[0].split('/')[-1] == ckpt_name_meta:
+                # print(ckpt.model_checkpoint_path)
                 start = int(ckpt.model_checkpoint_path.split("-")[1])
                 logging.info("start by iteration: %d" % (start))
                 model_saver = tf.train.Saver()
@@ -129,7 +130,7 @@ def modelTrain(testState = False):
                 if epoch%1 == 0:
                     print(params.EMB_DIM,params.BATCH_SIZE,params.DECAY,params.K,params.N_EPOCH,params.LR)
                     print('Epoch %d training loss %f' % (epoch, loss))
-                    if testState == True:
+                    if epoch % 10 == 0 and testState == True and epoch > 50:
                         users_to_test_1 = list(data_generator_1.test_set.keys())
                         users_to_test_2 = list(data_generator_2.test_set.keys())
                         users_to_test = [users_to_test_1, users_to_test_2]
@@ -145,32 +146,19 @@ def modelTrain(testState = False):
                                 % (params.metaName_2, ret_2[0],ret_2[1],ret_2[2],ret_2[3],ret_2[4]))
                         print('%s: map_20 %f map_40 %f map_60 %f map_80 %f map_100 %f'
                             % (params.metaName_2, ret_2[5], ret_2[6], ret_2[7], ret_2[8], ret_2[9]))
-                        logStrList[0] = 'EMB_DIM,BATCH_SIZE,DECAY,K,N_EPOCH,LR:'+','.join([str(val) for val in paramsList])
-                        logStrList[1] = 'Epoch ' + str(epoch) + 'training loss ' + str(loss)
-                        logStrList[2] = 'recall_20_40_60_80:' + ','.join([str(val) for val in ret_1[:5]]) + ','.join([str(val) for val in ret_2[:5]])
-                        logStrList[3] = 'map_20_40_60_80_100:' + ','.join([str(val) for val in ret_1[5:]]) + ','.join([str(val) for val in ret_2[5:]])
-                        logStr = '\n'.join(logStrList)
-                        with open(logFileName,'a') as logFileA:
-                            logFileA.write(model.model_name + '-' + params.metaName_1 + '-' + params.metaName_2 + '\n')
-                            logFileA.write(logStr)
+                        logStr(params.metaName_1, epoch, loss, ret_1, paramsList)
+                        logStr(params.metaName_2, epoch, loss, ret_2, paramsList)
                     else:
-                        logStrList[0] = 'EMB_DIM,BATCH_SIZE,DECAY,K,N_EPOCH,LR:'+','.join([str(val) for val in paramsList])
-                        logStrList[1] = 'Epoch ' + str(epoch) + 'training loss ' + str(loss)
-                        logStrList[2] = ' '
-                        logStrList[3] = ' '
-                        logStr = '\n'.join(logStrList)
-                        with open(logFileName,'a') as logFileA:
-                            logFileA.write(logStr) 
+                        logStr(params.metaName_1, epoch, loss, [], paramsList)
+                        logStr(params.metaName_2, epoch, loss, [], paramsList)
                 if epoch%int((USER_NUM_1 * ITEM_NUM_1 / params.BATCH_SIZE)/10) == 0:
                     if epoch > start:
-                        ckpt_name = str(model.model_name + '_' + params.metaName_1 + 
-                            '_' + params.metaName_2 + '_' + '_'.join([str(val) for val in paramsList]) + '.ckpt-' + str(epoch))
+                        ckpt_name = ckpt_name_meta + '-' + str(epoch)
                         model_saver.save(sess, ckpt_dir + ckpt_name)
 
         except KeyboardInterrupt:
             if epoch - start > 100:
-                ckpt_name = str(model.model_name + '_' + params.metaName_1 + 
-                            '_' + params.metaName_2 + '_' + '_'.join([str(val) for val in paramsList]) + '.ckpt-' + str(epoch))
+                ckpt_name = ckpt_name_meta + '-' + str(epoch)
                 model_saver.save(sess, ckpt_dir + ckpt_name)
 
 
@@ -228,3 +216,15 @@ def laplacian_matrix(degree_mat, adjacient_mat, normalized=False):
     temp = np.dot(np.diag(np.power(degree_mat, -1)), adjacient_mat)
     #temp = np.dot(temp, np.power(self.D, -0.5))
     return np.identity(temp.shape[0],dtype=np.float32) - temp
+
+
+def logStr(dataset, epochNum, loss, results, parameters, logFile=logFileName):
+    parameterLog = 'EMB_DIM,BATCH_SIZE,DECAY,K,N_EPOCH,LR:'+','.join([str(val) for val in parameters])
+    recallLog = 'recall_20_40_60_80:' + ','.join([str(val) for val in results[:5]])
+    precesionLog = 'map_20_40_60_80_100:' + ','.join([str(val) for val in results[5:]])
+    trainProcess = 'Epoch ' + str(epochNum) + ' training loss: ' + str(loss)
+    with open(logFile, 'w') as lf:
+        lf.write(parameterLog)
+        lf.write(trainProcess)
+        lf.write(recallLog)
+        lf.write(precesionLog)

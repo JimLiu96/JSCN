@@ -8,8 +8,13 @@ cores = multiprocessing.cpu_count()
 
 print(params.BATCH_SIZE)
 # train_user_file_name = 'testTrain.dat'
-
-
+data_generator_1 = load_data.Data(train_file=params.DIR + params.trainUserFileName_1, test_file=params.DIR+params.testUserFileName_1,batch_size=params.BATCH_SIZE)
+data_generator_2 = load_data.Data(train_file=params.DIR + params.trainUserFileName_2, test_file=params.DIR+params.testUserFileName_2,batch_size=params.BATCH_SIZE)
+data_generator_all = [data_generator_1, data_generator_2]
+# print(params.trainUserFileName_1, params.testUserFileName_1)
+# print(params.trainUserFileName_2, params.testUserFileName_2)
+USER_NUM_1, ITEM_NUM_1 = data_generator_1.get_num_users_items()
+USER_NUM_2, ITEM_NUM_2 = data_generator_2.get_num_users_items()
 
 def test_one_user(x):
     # user u's ratings for user u
@@ -19,7 +24,7 @@ def test_one_user(x):
     #user u's items in the training set
     item_num = x[2]
 
-    data_generator = x[3]
+    data_generator = data_generator_all[x[3]]
 
     training_items = data_generator.train_items[u]
     #user u's items in the test set
@@ -72,8 +77,8 @@ def testAll(sess, model, users_to_test, data_generator, feed_dict):
     test_user_num_2 = len(test_users_2)
     item_num_list_1 = [model.n_items_1] * params.BATCH_SIZE
     item_num_list_2 = [model.n_items_2] * params.BATCH_SIZE
-    data_generator_batch_1 = [data_generator_1] * params.BATCH_SIZE
-    data_generator_batch_2 = [data_generator_2] * params.BATCH_SIZE
+    data_generator_batch_1 = [0] * params.BATCH_SIZE
+    data_generator_batch_2 = [1] * params.BATCH_SIZE
     index = 0
     while True:
         if index >= min(test_user_num_1, test_user_num_2):

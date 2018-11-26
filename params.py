@@ -1,11 +1,11 @@
 MODEL = 'SpectralCF'
 DATASET = 'amazon'
 
-EMB_DIM = 32
+EMB_DIM = 16
 BATCH_SIZE = 1024
 DECAY = 0.001
 LAMDA = 1
-K = 5
+K = 3
 N_EPOCH = 20000
 LR = 0.001
 DROPOUT = 0.0
@@ -13,8 +13,8 @@ DROPOUT = 0.0
 DIR = './data/'+DATASET+'/'
 # metaName = 'ratings_Tools_and_Home_Improvement'
 # metaName = 'ratings_Amazon_Instant_Video'
-# # metaName = 'ratings_Home_and_Kitchen'
-# # metaName = 'ratings_Digital_Music'
+# metaName = 'ratings_Home_and_Kitchen'
+# # # metaName = 'ratings_Digital_Music'
 
 # userEmbeddingDIR = './embedding/' + metaName + '_userEmbedding.pickle'
 # itemEmbeddingDIR = './embedding/' + metaName + '_itemEmbedding.pickle'
@@ -24,9 +24,12 @@ DIR = './data/'+DATASET+'/'
 
 
 # metaName_1 = 'ratings_Video_Games'
+metaName_1 = 'ratings_Books'
+metaName_2 = 'ratings_Movies_and_TV'
+# metaName_1 = 'ratings_Tools_and_Home_Improvement'
 # metaName_2 = 'ratings_Home_and_Kitchen'
-metaName_1 = 'ratings_Amazon_Instant_Video'
-metaName_2 = 'ratings_Automotive'
+# metaName_1 = 'ratings_Amazon_Instant_Video'
+# metaName_2 = 'ratings_Automotive'
 # metaName_2 = 'ratings_Digital_Music'
 userEmbeddingDIR_1 = './embedding/' + metaName_1 + '_userEmbedding.pickle'
 itemEmbeddingDIR_1 = './embedding/' + metaName_1 + '_itemEmbedding.pickle'
