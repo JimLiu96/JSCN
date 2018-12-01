@@ -99,9 +99,9 @@ def modelTrain(testState = False):
         start = 0
         model_saver = tf.train.Saver(max_to_keep=10)
         if ckpt and ckpt.model_checkpoint_path:
-            # print(ckpt.model_checkpoint_path.split("-"))
+            print(ckpt.model_checkpoint_path.split("-")[-1])
             if ckpt.model_checkpoint_path.split("-")[0].split('/')[-1] == ckpt_name_meta:
-                # print(ckpt.model_checkpoint_path)
+                print(ckpt.model_checkpoint_path)
                 start = int(ckpt.model_checkpoint_path.split("-")[1])
                 logging.info("start by iteration: %d" % (start))
                 model_saver = tf.train.Saver()
@@ -130,28 +130,29 @@ def modelTrain(testState = False):
                 if epoch%1 == 0:
                     print(params.EMB_DIM,params.BATCH_SIZE,params.DECAY,params.K,params.N_EPOCH,params.LR)
                     print('Epoch %d training loss %f' % (epoch, loss))
-                    if epoch % 10 == 0 and testState == True and epoch > 50:
-                        users_to_test_1 = list(data_generator_1.test_set.keys())
-                        users_to_test_2 = list(data_generator_2.test_set.keys())
-                        users_to_test = [users_to_test_1, users_to_test_2]
-                        ret = test.testAll(sess, model, users_to_test, data_generator, feed_dict)
-                        ret_1 = ret[0]
-                        ret_2 = ret[1]
-                        print('%s: recall_20 %f recall_40 %f recall_60 %f recall_80 %f recall_100 %f'
-                                % (params.metaName_1, ret_1[0],ret_1[1],ret_1[2],ret_1[3],ret_1[4]))
-                        print('%s: map_20 %f map_40 %f map_60 %f map_80 %f map_100 %f'
-                            % (params.metaName_1, ret_1[5], ret_1[6], ret_1[7], ret_1[8], ret_1[9]))
+                    if epoch > 100:
+                        if epoch % 5 == 0 and testState == True:
+                            users_to_test_1 = list(data_generator_1.test_set.keys())
+                            users_to_test_2 = list(data_generator_2.test_set.keys())
+                            users_to_test = [users_to_test_1, users_to_test_2]
+                            ret = test.testAll(sess, model, users_to_test, feed_dict)
+                            ret_1 = ret[0]
+                            ret_2 = ret[1]
+                            print('%s: recall_20 %f recall_40 %f recall_60 %f recall_80 %f recall_100 %f'
+                                    % (params.metaName_1, ret_1[0],ret_1[1],ret_1[2],ret_1[3],ret_1[4]))
+                            print('%s: map_20 %f map_40 %f map_60 %f map_80 %f map_100 %f'
+                                % (params.metaName_1, ret_1[5], ret_1[6], ret_1[7], ret_1[8], ret_1[9]))
 
-                        print('%s: recall_20 %f recall_40 %f recall_60 %f recall_80 %f recall_100 %f'
-                                % (params.metaName_2, ret_2[0],ret_2[1],ret_2[2],ret_2[3],ret_2[4]))
-                        print('%s: map_20 %f map_40 %f map_60 %f map_80 %f map_100 %f'
-                            % (params.metaName_2, ret_2[5], ret_2[6], ret_2[7], ret_2[8], ret_2[9]))
-                        logStr(params.metaName_1, epoch, loss, ret_1, paramsList)
-                        logStr(params.metaName_2, epoch, loss, ret_2, paramsList)
+                            print('%s: recall_20 %f recall_40 %f recall_60 %f recall_80 %f recall_100 %f'
+                                    % (params.metaName_2, ret_2[0],ret_2[1],ret_2[2],ret_2[3],ret_2[4]))
+                            print('%s: map_20 %f map_40 %f map_60 %f map_80 %f map_100 %f'
+                                % (params.metaName_2, ret_2[5], ret_2[6], ret_2[7], ret_2[8], ret_2[9]))
+                            logStr(params.metaName_1, epoch, loss, ret_1, paramsList)
+                            logStr(params.metaName_2, epoch, loss, ret_2, paramsList)
                     else:
                         logStr(params.metaName_1, epoch, loss, [], paramsList)
                         logStr(params.metaName_2, epoch, loss, [], paramsList)
-                if epoch%int((USER_NUM_1 * ITEM_NUM_1 / params.BATCH_SIZE)/10) == 0:
+                if epoch% (int(USER_NUM_1 / params.BATCH_SIZE)*5) == 0:
                     if epoch > start:
                         ckpt_name = ckpt_name_meta + '-' + str(epoch)
                         model_saver.save(sess, ckpt_dir + ckpt_name)
@@ -174,7 +175,7 @@ def modelTrain(testState = False):
 
 def genEigenvector(laplacian_mat, eigenPickleFileName):
     print("----------computing eigen vectors-------------")
-    lamda, U = np.linalg.eig(laplacian_mat)
+    lamda, U = np.linalg.eigh(laplacian_mat)
     with open(eigenPickleFileName, 'wb') as pf:
         pickle.dump([lamda,U], pf)
     print("------------eigen vectors settle----------------")
@@ -223,8 +224,9 @@ def logStr(dataset, epochNum, loss, results, parameters, logFile=logFileName):
     recallLog = 'recall_20_40_60_80:' + ','.join([str(val) for val in results[:5]])
     precesionLog = 'map_20_40_60_80_100:' + ','.join([str(val) for val in results[5:]])
     trainProcess = 'Epoch ' + str(epochNum) + ' training loss: ' + str(loss)
-    with open(logFile, 'w') as lf:
-        lf.write(parameterLog)
-        lf.write(trainProcess)
-        lf.write(recallLog)
-        lf.write(precesionLog)
+    with open(logFile, 'a') as lf:
+        lf.write(dataset + '\n')
+        lf.write(parameterLog + '\n')
+        lf.write(trainProcess + '\n')
+        lf.write(recallLog + '\n')
+        lf.write(precesionLog + '\n')
