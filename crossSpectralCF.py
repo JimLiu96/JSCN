@@ -193,9 +193,12 @@ class SpectralCF(object):
 
     def createCommonUserloss(self, commonUserEmbedding_1, commonUserEmbedding_2):
         commonUserLoss = 0.0
+        regularizer = 0.0
+        regularizer = tf.nn.l2_loss(commonUserEmbedding_1) + tf.nn.l2_loss(commonUserEmbedding_2)
+        regularizer = regularizer/self.batch_size
 
         commonUserLoss = commonUserLoss + tf.nn.l2_loss(tf.matmul(commonUserEmbedding_1, self.user_mapping_1) - tf.matmul(commonUserEmbedding_2, self.user_mapping_2))
-
+        commonUserLoss = regularizer + commonUserLoss
         # commonUserLoss = commonUserLoss + tf.losses.absolute_difference(commonUserEmbedding_1, commonUserEmbedding_2)
 
         # cosine common user loss

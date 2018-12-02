@@ -8,6 +8,7 @@ import logging
 import load_data
 import params
 import os
+import time
 
 # Gloable Variable get from the test file: (Ignore)
 # USER_NUM, ITEM_NUM, N_EPOCH
@@ -220,11 +221,13 @@ def laplacian_matrix(degree_mat, adjacient_mat, normalized=False):
 
 
 def logStr(dataset, epochNum, loss, results, parameters, logFile=logFileName):
+    timeStr = time.asctime( time.localtime(time.time()) )
     parameterLog = 'EMB_DIM,BATCH_SIZE,DECAY,K,N_EPOCH,LR:'+','.join([str(val) for val in parameters])
     recallLog = 'recall_20_40_60_80:' + ','.join([str(val) for val in results[:5]])
     precesionLog = 'map_20_40_60_80_100:' + ','.join([str(val) for val in results[5:]])
     trainProcess = 'Epoch ' + str(epochNum) + ' training loss: ' + str(loss)
     with open(logFile, 'a') as lf:
+        lf.write(timeStr + '\n')
         lf.write(dataset + '\n')
         lf.write(parameterLog + '\n')
         lf.write(trainProcess + '\n')

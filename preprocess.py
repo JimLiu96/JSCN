@@ -132,7 +132,7 @@ def targetRatingUser(sourceUserSet, ratingFileTarget, rating_score=5):
                     u2items[u] = [i]
     return u2items
 
-def source2targetUserRating(sourceMetaName, targetRatingFile, percent=1.0, train_items=5,user_thres = 5, rating_score=5):
+def source2targetUserRating(sourceMetaName, targetRatingFile, percent=1.0, train_items=5, user_thres = 5, item_thres = 1, rating_score=5):
     sourceID2USER, _ = loadID2UandI(sourceMetaName)
     sourceUserList = [u for num,u in sourceID2USER.items()]
     num_user = len(sourceUserList)
@@ -154,9 +154,12 @@ def source2targetUserRating(sourceMetaName, targetRatingFile, percent=1.0, train
                     iid += 1
                     temp.append(item2id[i])
         targetU2Items[k] = temp
+    targetU2Items = {k:v for k,v in targetU2Items.items() if len(v) >= item_thres}
     id2item = {idNum:itemNum for itemNum,idNum in item2id.items()}
     num_ratings = 0
     for u in targetU2Items:
+        if len(targetU2Items[u]) == 0:
+     	   print("0??????")
         num_ratings += len(targetU2Items[u])
     sourceMetaName = pathMetaN2MetaN(sourceMetaName, False)
     s2tMetaName = targetRatingFile.split('.')[0] + '_from_' + sourceMetaName
