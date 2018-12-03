@@ -22,6 +22,7 @@ class SpectralCF(object):
         self.K = K
         self.decay = decay
         self.bpr_loss = [0]*M
+        self.num_common_users = len(commonUser)
 
         var_list = []
 
@@ -39,21 +40,24 @@ class SpectralCF(object):
         self.item_embeddings_1 = tf.Variable(
             tf.random_normal([self.n_items_1, self.emb_dim], mean=0.01, stddev=0.02, dtype=tf.float32),
             name='item_embeddings')
+        var_list.append(self.user_embeddings_1)
+        var_list.append(self.item_embeddings_1)
+
 #         self.user_mapping_1 = tf.Variable(
 #             tf.random_normal([self.emb_dim*(self.K+1), self.emb_dim*(self.K+1)], mean=0.01, stddev=0.02, dtype=tf.float32),
 #             name='user_mapping_1')
 #         self.item_mapping_1 = tf.Variable(
 #             tf.random_normal([self.emb_dim*(self.K+1), self.emb_dim*(self.K+1)], mean=0.01, stddev=0.02, dtype=tf.float32),
 #             name='item_mapping_1')
+
         self.user_mapping_1 = tf.Variable(
             tf.random_normal([self.emb_dim, self.emb_dim], mean=0.01, stddev=0.02, dtype=tf.float32),
             name='user_mapping_1')
         self.item_mapping_1 = tf.Variable(
             tf.random_normal([self.emb_dim, self.emb_dim], mean=0.01, stddev=0.02, dtype=tf.float32),
             name='item_mapping_1')
-
-        var_list.append(self.user_embeddings_1)
-        var_list.append(self.item_embeddings_1)
+        var_list.append(self.user_mapping_1)
+        var_list.append(self.item_mapping_1)
 
         self.filters_1 = []
         for k in range(self.K):
@@ -72,10 +76,10 @@ class SpectralCF(object):
             embeddings_1 = tf.matmul(A_hat_1, embeddings_1)
             embeddings_1 = tf.nn.sigmoid(tf.matmul(embeddings_1, self.filters_1[k]))
             all_embeddings_1 += [embeddings_1]
-#         all_embeddings_1 = tf.concat(all_embeddings_1, 1)
-#         self.u_embeddings_1, self.i_embeddings_1 = tf.split(all_embeddings_1, [self.n_users_1, self.n_items_1], 0)
-        last_embeddings_1 = all_embeddings_1[-1]
-        self.u_embeddings_1, self.i_embeddings_1 = tf.split(last_embeddings_1, [self.n_users_1, self.n_items_1], 0)
+        all_embeddings_1 = tf.concat(all_embeddings_1, 1)
+        self.u_embeddings_1, self.i_embeddings_1 = tf.split(all_embeddings_1, [self.n_users_1, self.n_items_1], 0)
+#         last_embeddings_1 = all_embeddings_1[-1]
+#         self.u_embeddings_1, self.i_embeddings_1 = tf.split(last_embeddings_1, [self.n_users_1, self.n_items_1], 0)
         
 
         # self.u_embeddings_1 = tf.nn.embedding_lookup(self.u_embeddings_1, self.users_1)
@@ -109,8 +113,10 @@ class SpectralCF(object):
             self.item_embeddings_2 = tf.Variable(
                 tf.random_normal([self.n_items_2, self.emb_dim], mean=0.01, stddev=0.02, dtype=tf.float32),
                 name='item_embeddings_2')
+            var_list.append(self.user_embeddings_2)
+            var_list.append(self.item_embeddings_2)
 #             self.user_mapping_2 = tf.Variable(
-#                 tf.random_normal([self.emb_dim*(self.K+1), self.emb_dim*(self.K+1)], mean=0.01, stddev=0.02, dtype=tf.float32),
+#                 tf.random_normal([sel  f.emb_dim*(self.K+1), self.emb_dim*(self.K+1)], mean=0.01, stddev=0.02, dtype=tf.float32),
 #                 name='user_mapping_2')
 #             self.item_mapping_2 = tf.Variable(
 #                 tf.random_normal([self.emb_dim*(self.K+1), self.emb_dim*(self.K+1)], mean=0.01, stddev=0.02, dtype=tf.float32),
@@ -121,9 +127,9 @@ class SpectralCF(object):
             self.item_mapping_2 = tf.Variable(
                 tf.random_normal([self.emb_dim, self.emb_dim], mean=0.01, stddev=0.02, dtype=tf.float32),
             name='item_mapping_2')
+            var_list.append(self.user_mapping_2)
+            var_list.append(self.item_mapping_2)
 
-            var_list.append(self.user_embeddings_2)
-            var_list.append(self.item_embeddings_2)
 
 
             self.filters_2 = []
@@ -142,14 +148,10 @@ class SpectralCF(object):
                 embeddings_2 = tf.nn.sigmoid(tf.matmul(embeddings_2, self.filters_2[k]))
                 all_embeddings_2 += [embeddings_2]
 
-#             all_embeddings_2 = tf.concat(all_embeddings_2, 1)
-#             all_embeddings_2 = all_embeddings_2[-1]
-#             self.u_embeddings_2, self.i_embeddings_2 = tf.split(all_embeddings_2, [self.n_users_2, self.n_items_2], 0)
-            last_embeddings_2 = all_embeddings_2[-1]
-            self.u_embeddings_2, self.i_embeddings_2 = tf.split(last_embeddings_2, [self.n_users_2, self.n_items_2], 0)
-            # self.u_embeddings_2 = tf.nn.embedding_lookup(self.u_embeddings_2, self.users_2)
-            # self.pos_i_embeddings_2 = tf.nn.embedding_lookup(self.i_embeddings_2, self.pos_items_2)
-            # self.neg_i_embeddings_2 = tf.nn.embedding_lookup(self.i_embeddings_2, self.neg_items_2)
+            all_embeddings_2 = tf.concat(all_embeddings_2, 1)
+            self.u_embeddings_2, self.i_embeddings_2 = tf.split(all_embeddings_2, [self.n_users_2, self.n_items_2], 0)
+#             last_embeddings_2 = all_embeddings_2[-1]
+#             self.u_embeddings_2, self.i_embeddings_2 = tf.split(last_embeddings_2, [self.n_users_2, self.n_items_2], 0)
 
             batch_u_embeddings_2 = tf.nn.embedding_lookup(self.u_embeddings_2, self.users_2)
             batch_pos_i_embeddings_2 = tf.nn.embedding_lookup(self.i_embeddings_2, self.pos_items_2)
@@ -159,8 +161,6 @@ class SpectralCF(object):
 
 
             self.all_ratings_2 = tf.matmul(self.u_embeddings_2, self.i_embeddings_2, transpose_a=False, transpose_b=True)
-            # self.all_ratings_2 = tf.matmul(batch_u_embeddings_2, self.i_embeddings_2, transpose_a=False, transpose_b=True)
-            # self.all_ratings_2 = tf.matmul(self.u_embeddings_2, self.i_embeddings_2, transpose_a=False, transpose_b=True)
             # self.bpr_loss[1] = self.create_bpr_loss(self.u_embeddings_2, self.pos_i_embeddings_2, self.neg_i_embeddings_2)
             self.bpr_loss[1] = self.create_bpr_loss(batch_u_embeddings_2, batch_pos_i_embeddings_2, batch_neg_i_embeddings_2)
     #         print("---------------loss is set----------------")
@@ -194,12 +194,14 @@ class SpectralCF(object):
     def createCommonUserloss(self, commonUserEmbedding_1, commonUserEmbedding_2):
         commonUserLoss = 0.0
         regularizer = 0.0
-        regularizer = tf.nn.l2_loss(commonUserEmbedding_1) + tf.nn.l2_loss(commonUserEmbedding_2)
-        regularizer = regularizer/self.batch_size
-
-        commonUserLoss = commonUserLoss + tf.nn.l2_loss(tf.matmul(commonUserEmbedding_1, self.user_mapping_1) - tf.matmul(commonUserEmbedding_2, self.user_mapping_2))
-        commonUserLoss = regularizer + commonUserLoss
-        # commonUserLoss = commonUserLoss + tf.losses.absolute_difference(commonUserEmbedding_1, commonUserEmbedding_2)
+#         commonUserMapping_1 = tf.matmul(commonUserEmbedding_1, self.user_mapping_1)
+#         commonUserMapping_2 = tf.matmul(commonUserEmbedding_2, self.user_mapping_2)
+#         regularizer = tf.nn.l2_loss(commonUserMapping_1) + tf.nn.l2_loss(commonUserMapping_2)
+#         regularizer = regularizer/self.batch_size
+        commonUserLoss = commonUserLoss + tf.nn.l2_loss(commonUserEmbedding_1 - commonUserEmbedding_2)/self.num_common_users
+#         commonUserLoss = commonUserLoss + tf.nn.l2_loss(commonUserMapping_1 - commonUserMapping_2)/self.num_common_users
+#         commonUserLoss = regularizer + commonUserLoss
+        # commonUserLoss = commonUserLoss + tf.losses.absolute_difference(commonUserEmbedding_1, commonUserEmbedding_2)/self.num_common_users
 
         # cosine common user loss
         # commonUserLoss = commonUserLoss + tf.losses.cosine_distance(tf.nn.l2_normalize(commonUserEmbedding_1, 0), tf.nn.l2_normalize(commonUserEmbedding_2, 0), dim=0)
