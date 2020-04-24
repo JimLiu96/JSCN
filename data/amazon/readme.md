@@ -7,4 +7,4 @@ preprocess.getAllUserItems(ratingFileName) # get all the userID and itemID
 
 ## Notebook
 
-dataProcessing.ipynb contains the code for how to user ``preprocess.py`` process the data
+``dataProcessing.ipynb`` contains the code for how to user ``preprocess.py`` process the data
