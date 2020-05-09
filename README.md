@@ -54,6 +54,6 @@ Each row is user_id, basket_id, basket_id, ...
   ```[(u_id_in_target_1, uid_in_source_1),(u_id_in_target_2, uid_in_source_2),....,]```
   which tells the model how the users in target domain are aligned with users in source domains.
 
-You may generate the data first if you want to run the code on new datasets.
+You may generate those files first if you want to run the code on new datasets.
 
 The maximum number of source domains is currently 2 by using `JSCN_beta_s2`
