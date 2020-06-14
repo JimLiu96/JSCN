@@ -1,4 +1,4 @@
-This a code for using multiple source domains to improve the performance on on target domain. The code is based spectral collaborative filtering method.
+This is a code for cross-domain recommendation. It supports using multiple source domains to improve the performance on on one target domain. The code is based [spectral collaborative filtering](https://github.com/lzheng21/SpectralCF) method.
 
 # Citation
 If you use the code, please cite [our paper](https://arxiv.org/abs/1910.08219)
